@@ -10,6 +10,8 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { createClient } from "@supabase/supabase-js";
+import { buildOverview, parseGrade } from "./stats.js";
+import { validateStudentName } from "./names.js";
 
 const {
   SUPABASE_URL,
@@ -38,11 +40,18 @@ const wrap = (fn) => (req, res) =>
     res.status(500).json({ error: "Server error." });
   });
 
-function parseGrade(value) {
-  if (value === "" || value === null || value === undefined) return null;
-  const grade = Number(value);
-  return Number.isFinite(grade) && grade >= 0 && grade <= 100 ? grade : null;
+
+function parseId(value) {
+  const id = Number(value);
+  return Number.isInteger(id) && id > 0 ? id : null;
 }
+
+const cleanName = (value) => String(value ?? "").trim();
+
+// Postgres error codes we turn into friendly messages.
+const UNIQUE_VIOLATION = "23505";
+const FOREIGN_KEY_VIOLATION = "23503";
+const RLS_VIOLATION = "42501";
 
 // ---------- auth middleware ----------
 
@@ -69,101 +78,70 @@ async function requireUser(req, res, next) {
 
 app.use("/api", requireUser);
 
-// ---------- routes ----------
+// ---------- overview (students + the 4 fixed subjects + grades + averages) ----------
 
-// List students (optional ?search=) plus the class average.
 app.get(
   "/api/students",
   wrap(async (req, res) => {
     const search = String(req.query.search || "").trim();
 
-    let query = req.db
+    let studentQuery = req.db
       .from("students")
-      .select("id, name, grade")
+      .select("id, name")
       .order("name", { ascending: true });
-    if (search) query = query.ilike("name", `%${search}%`);
+    if (search) studentQuery = studentQuery.ilike("name", `%${search}%`);
 
-    const { data: students, error } = await query;
-    if (error) throw error;
+    const [students, subjects, grades] = await Promise.all([
+      studentQuery,
+      // Fixed shared list (Math, English, Science, Arts), kept in the order they were created.
+      req.db.from("subjects").select("id, name").order("id", { ascending: true }),
+      req.db.from("grades").select("student_id, subject_id, grade"),
+    ]);
+    for (const result of [students, subjects, grades]) {
+      if (result.error) throw result.error;
+    }
 
-    // Average is over ALL of this user's students, not just the search results.
-    const { data: allGrades, error: avgError } = await req.db
-      .from("students")
-      .select("grade");
-    if (avgError) throw avgError;
-
-    const average = allGrades.length
-      ? Math.round(
-          (allGrades.reduce((sum, r) => sum + Number(r.grade), 0) /
-            allGrades.length) *
-            10
-        ) / 10
-      : null;
-
-    res.json({
-      students: students.map((s) => ({ ...s, grade: Number(s.grade) })),
-      average,
-    });
+    res.json(buildOverview(students.data, subjects.data, grades.data));
   })
 );
 
-// Add a student.
+// ---------- students ----------
+
 app.post(
   "/api/students",
   wrap(async (req, res) => {
-    const name = String(req.body?.name ?? "").trim();
-    const grade = parseGrade(req.body?.grade);
-    if (!name) return res.status(400).json({ error: "Name cannot be empty." });
-    if (grade === null)
-      return res.status(400).json({ error: "Grade must be a number between 0 and 100." });
+    // Last name, first name, middle initial and optional suffix; checked and tidied here.
+    const student = validateStudentName(req.body);
+    if (student.error) return res.status(400).json({ error: student.error });
 
     // user_id is filled in by the database from the user's token.
     const { data, error } = await req.db
       .from("students")
-      .insert({ name, grade })
-      .select("id, name, grade")
+      .insert({
+        name: student.name,
+        last_name: student.last_name,
+        first_name: student.first_name,
+        middle_initial: student.middle_initial,
+        suffix: student.suffix,
+      })
+      .select("id, name")
       .single();
 
-    if (error?.code === "23505")
+    if (error?.code === UNIQUE_VIOLATION)
       return res.status(409).json({ error: "Student already exists." });
     if (error) throw error;
 
-    res.status(201).json({ ...data, grade: Number(data.grade) });
+    res.status(201).json(data);
   })
 );
 
-// Update a student's grade.
-app.put(
-  "/api/students/:id",
-  wrap(async (req, res) => {
-    const id = Number(req.params.id);
-    const grade = parseGrade(req.body?.grade);
-    if (!Number.isInteger(id)) return res.status(400).json({ error: "Invalid id." });
-    if (grade === null)
-      return res.status(400).json({ error: "Grade must be a number between 0 and 100." });
-
-    const { data, error } = await req.db
-      .from("students")
-      .update({ grade })
-      .eq("id", id)
-      .select("id, name, grade")
-      .maybeSingle();
-
-    if (error) throw error;
-    // RLS hides other users' rows, so "not yours" and "doesn't exist" look the same.
-    if (!data) return res.status(404).json({ error: "Student not found." });
-
-    res.json({ ...data, grade: Number(data.grade) });
-  })
-);
-
-// Delete a student.
 app.delete(
   "/api/students/:id",
   wrap(async (req, res) => {
-    const id = Number(req.params.id);
-    if (!Number.isInteger(id)) return res.status(400).json({ error: "Invalid id." });
+    const id = parseId(req.params.id);
+    if (!id) return res.status(400).json({ error: "Invalid id." });
 
+    // Their grades are removed automatically (on delete cascade).
     const { data, error } = await req.db
       .from("students")
       .delete()
@@ -174,6 +152,58 @@ app.delete(
     if (!data.length) return res.status(404).json({ error: "Student not found." });
 
     res.status(204).end();
+  })
+);
+
+// ---------- grades ----------
+
+// Set one student's grade for one subject. An empty grade clears it.
+// Body: { student_id, subject_id, grade }
+app.put(
+  "/api/grades",
+  wrap(async (req, res) => {
+    const studentId = parseId(req.body?.student_id);
+    const subjectId = parseId(req.body?.subject_id);
+    if (!studentId || !subjectId)
+      return res.status(400).json({ error: "Invalid student or subject." });
+
+    const raw = req.body?.grade;
+    const clearing = raw === "" || raw === null || raw === undefined;
+
+    if (clearing) {
+      const { error } = await req.db
+        .from("grades")
+        .delete()
+        .eq("student_id", studentId)
+        .eq("subject_id", subjectId);
+      if (error) throw error;
+      return res.json({ student_id: studentId, subject_id: subjectId, grade: null });
+    }
+
+    const grade = parseGrade(raw);
+    if (grade === null)
+      return res.status(400).json({ error: "Grade must be a number between 0 and 100." });
+
+    const { data, error } = await req.db
+      .from("grades")
+      .upsert(
+        {
+          student_id: studentId,
+          subject_id: subjectId,
+          grade,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "student_id,subject_id" }
+      )
+      .select("student_id, subject_id, grade")
+      .single();
+
+    // Student/subject missing, or belongs to someone else (blocked by the RLS policy).
+    if (error?.code === FOREIGN_KEY_VIOLATION || error?.code === RLS_VIOLATION)
+      return res.status(404).json({ error: "Student or subject not found." });
+    if (error) throw error;
+
+    res.json({ ...data, grade: Number(data.grade) });
   })
 );
 

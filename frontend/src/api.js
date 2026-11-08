@@ -19,20 +19,20 @@ async function request(url, options = {}) {
   return body;
 }
 
-export const getStudents = (search = "") =>
+// Students, subjects, every grade, and the averages, in one call.
+export const getOverview = (search = "") =>
   request(`/api/students?search=${encodeURIComponent(search)}`);
 
-export const addStudent = (name, grade) =>
-  request("/api/students", {
-    method: "POST",
-    body: JSON.stringify({ name, grade }),
-  });
-
-export const updateStudent = (id, grade) =>
-  request(`/api/students/${id}`, {
-    method: "PUT",
-    body: JSON.stringify({ grade }),
-  });
+// parts = { last_name, first_name, middle_initial, suffix }
+export const addStudent = (parts) =>
+  request("/api/students", { method: "POST", body: JSON.stringify(parts) });
 
 export const deleteStudent = (id) =>
   request(`/api/students/${id}`, { method: "DELETE" });
+
+// An empty grade clears that cell.
+export const saveGrade = (studentId, subjectId, grade) =>
+  request("/api/grades", {
+    method: "PUT",
+    body: JSON.stringify({ student_id: studentId, subject_id: subjectId, grade }),
+  });
