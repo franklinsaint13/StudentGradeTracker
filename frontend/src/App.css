@@ -1,0 +1,174 @@
+:root {
+  --bg: #f4f6fb;
+  --card: #ffffff;
+  --text: #1c2333;
+  --muted: #6b7489;
+  --border: #dde2ee;
+  --primary: #3b5bdb;
+  --danger: #d6336c;
+  --ok-bg: #e6f6ec;
+  --ok-text: #1b7a3d;
+  --err-bg: #fdecec;
+  --err-text: #b42318;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12151f;
+    --card: #1b2030;
+    --text: #e8ebf5;
+    --muted: #98a2b8;
+    --border: #2c3348;
+    --primary: #748ffc;
+    --danger: #f06595;
+    --ok-bg: #12301f;
+    --ok-text: #6fd99a;
+    --err-bg: #3a1a1a;
+    --err-text: #ff9a94;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 16px 64px;
+}
+
+h1 {
+  margin: 0 0 20px;
+  font-size: 1.6rem;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+input {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  flex: 1;
+  min-width: 140px;
+}
+
+input.small {
+  max-width: 90px;
+  min-width: 0;
+  padding: 6px 8px;
+}
+
+input.search {
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+button {
+  padding: 10px 16px;
+  border: 1px solid var(--primary);
+  border-radius: 8px;
+  background: var(--primary);
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+button.secondary {
+  background: transparent;
+  color: var(--primary);
+}
+
+button.danger {
+  background: transparent;
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+button.link {
+  background: none;
+  border: none;
+  color: inherit;
+  padding: 0 4px;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+td.actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+td.actions button {
+  padding: 6px 12px;
+  margin-left: 6px;
+}
+
+.empty,
+.average {
+  color: var(--muted);
+  margin: 12px 0 0;
+}
+
+.average strong {
+  color: var(--text);
+}
+
+.banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.banner.ok {
+  background: var(--ok-bg);
+  color: var(--ok-text);
+}
+
+.banner.error {
+  background: var(--err-bg);
+  color: var(--err-text);
+}
