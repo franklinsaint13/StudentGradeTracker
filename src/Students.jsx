@@ -15,6 +15,7 @@ const QUOTES = [
   { text: "Teaching is the one profession that creates all other professions.", by: "Unknown" },
   { text: "A good teacher can inspire hope, ignite the imagination, and instill a love of learning.", by: "Brad Henry" },
   { text: "Every student can learn, just not on the same day, or in the same way.", by: "George Evans" },
+  { text: "Bagsak ka? Wala ka kasing bitaw", by: "Christian Joseph Palomares" },
 ];
 
 // A random quote, never the same one twice in a row.
