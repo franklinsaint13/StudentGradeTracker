@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { supabase } from "./supabase.js";
+import PasswordInput from "./PasswordInput.jsx";
 
 export default function Login() {
-  const [mode, setMode] = useState("signin"); // "signin" | "signup"
+  const [mode, setMode] = useState("signin"); // "signin" | "signup" | "forgot"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState(null); // { type: "error" | "ok", text }
@@ -13,7 +14,18 @@ export default function Login() {
     setBusy(true);
     setMessage(null);
 
-    if (mode === "signin") {
+    if (mode === "forgot") {
+      // Emails a link; the link brings the person back here to choose a new password.
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin,
+      });
+      if (error) setMessage({ type: "error", text: error.message });
+      else
+        setMessage({
+          type: "ok",
+          text: "If that email has an account, a reset link is on its way. Check your inbox (and spam).",
+        });
+    } else if (mode === "signin") {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) setMessage({ type: "error", text: error.message });
     } else {
@@ -40,7 +52,7 @@ export default function Login() {
 
       <form className="card" onSubmit={handleSubmit}>
         <h2 style={{ marginTop: 0 }}>
-          {mode === "signin" ? "Sign in" : "Create account"}
+          {mode === "signin" ? "Sign in" : mode === "signup" ? "Create account" : "Reset your password"}
         </h2>
         <div className="row" style={{ flexDirection: "column" }}>
           <input
@@ -51,21 +63,41 @@ export default function Login() {
             autoComplete="email"
             required
           />
-          <input
-            type="password"
-            placeholder="Password (min 6 characters)"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete={mode === "signin" ? "current-password" : "new-password"}
-            minLength={6}
-            required
-          />
+          {mode !== "forgot" && (
+            <PasswordInput
+              placeholder="Password (min 6 characters)"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete={mode === "signin" ? "current-password" : "new-password"}
+              minLength={6}
+              required
+            />
+          )}
           <button type="submit" disabled={busy}>
-            {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Sign up"}
+            {busy
+              ? "Please wait…"
+              : mode === "signin"
+              ? "Sign in"
+              : mode === "signup"
+              ? "Sign up"
+              : "Send reset link"}
           </button>
+          {mode === "signin" && (
+            <button
+              type="button"
+              className="link"
+              style={{ color: "var(--primary)", fontSize: "inherit", textAlign: "left" }}
+              onClick={() => {
+                setMode("forgot");
+                setMessage(null);
+              }}
+            >
+              Forgot password?
+            </button>
+          )}
         </div>
         <p className="empty">
-          {mode === "signin" ? "No account yet? " : "Already have an account? "}
+          {mode === "signin" ? "No account yet? " : mode === "signup" ? "Already have an account? " : "Remembered it? "}
           <button
             type="button"
             className="link"

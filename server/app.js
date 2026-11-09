@@ -1,12 +1,15 @@
-// server.js
+// server/app.js
 // Express API for the Student Grade Tracker. Data lives in Supabase (Postgres).
+//
+// This file only BUILDS the app and exports it:
+//   - on Vercel, api/index.js uses it as the serverless function for /api/...
+//   - on your computer, server/dev.js starts it on http://localhost:5000
 //
 // Every request must carry the logged-in user's Supabase access token:
 //   Authorization: Bearer <token>
 // We build a Supabase client that acts AS that user, so the Row Level Security
 // policies in supabase/schema.sql decide what rows they can see or change.
 
-import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { createClient } from "@supabase/supabase-js";
@@ -16,16 +19,14 @@ import { validateStudentName } from "./names.js";
 const {
   SUPABASE_URL,
   SUPABASE_ANON_KEY,
-  PORT = 5000,
   CLIENT_ORIGIN = "http://localhost:5173",
 } = process.env;
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  console.error(
-    "Missing SUPABASE_URL or SUPABASE_ANON_KEY. Copy .env.example to .env and fill them in."
-  );
-  process.exit(1);
-}
+const configError =
+  !SUPABASE_URL || !SUPABASE_ANON_KEY
+    ? "Server is missing SUPABASE_URL or SUPABASE_ANON_KEY. Add them to your .env file (or to the Environment Variables in Vercel)."
+    : null;
+if (configError) console.error(configError);
 
 const app = express();
 app.use(cors({ origin: CLIENT_ORIGIN }));
@@ -75,6 +76,11 @@ async function requireUser(req, res, next) {
   req.user = data.user;
   next();
 }
+
+// If the settings are missing, say so clearly instead of failing in a confusing way.
+app.use("/api", (req, res, next) =>
+  configError ? res.status(500).json({ error: configError }) : next()
+);
 
 app.use("/api", requireUser);
 
@@ -207,6 +213,4 @@ app.put(
   })
 );
 
-app.listen(PORT, () => {
-  console.log(`API running on http://localhost:${PORT}`);
-});
+export default app;

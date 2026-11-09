@@ -1,3 +1,5 @@
+-- Run ONCE in the Supabase dashboard: SQL Editor -> New query -> paste -> Run.
+--
 -- What it does:
 --   1. Creates the shared subjects table with Math, English, Science and Arts.
 --   2. Creates the grades table (one grade per student per subject) with security rules.

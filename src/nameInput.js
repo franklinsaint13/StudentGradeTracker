@@ -1,5 +1,5 @@
 // Live checks for the name boxes. The server checks everything again.
-// Keep the rules in step with backend/names.js.
+// Keep the rules in step with server/names.js.
 
 export const SUFFIXES = ["Jr.", "Sr.", "II", "III", "IV", "V"];
 
