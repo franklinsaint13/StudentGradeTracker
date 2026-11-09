@@ -4,6 +4,38 @@ import { getOverview, addStudent, deleteStudent, saveGrade } from "./api.js";
 import { gradeProblem } from "./gradeInput.js";
 import { namePartProblem, middleInitialProblem, previewName, SUFFIXES } from "./nameInput.js";
 
+// ---------- dashboard helpers ----------
+
+const QUOTES = [
+  { text: "Education is the most powerful weapon which you can use to change the world.", by: "Nelson Mandela" },
+  { text: "The beautiful thing about learning is that nobody can take it away from you.", by: "B. B. King" },
+  { text: "It does not matter how slowly you go as long as you do not stop.", by: "Confucius" },
+  { text: "The expert in anything was once a beginner.", by: "Helen Hayes" },
+  { text: "Success is the sum of small efforts, repeated day in and day out.", by: "Robert Collier" },
+  { text: "Teaching is the one profession that creates all other professions.", by: "Unknown" },
+  { text: "A good teacher can inspire hope, ignite the imagination, and instill a love of learning.", by: "Brad Henry" },
+  { text: "Every student can learn, just not on the same day, or in the same way.", by: "George Evans" },
+];
+
+// A new quote each day.
+function quoteOfTheDay() {
+  const day = Math.floor(Date.now() / 86400000);
+  return QUOTES[day % QUOTES.length];
+}
+
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 18) return "Good afternoon";
+  return "Good evening";
+}
+
+// "yaobaylon132226@gmail.com" -> "Yaobaylon"
+function firstNameFromEmail(email = "") {
+  const name = email.split("@")[0].replace(/[^a-zA-Z]+/g, " ").trim().split(" ")[0];
+  return name ? name[0].toUpperCase() + name.slice(1).toLowerCase() : "there";
+}
+
 const EMPTY_PARTS = { last_name: "", first_name: "", middle_initial: "", suffix: "" };
 
 const show = (n) => (n === null || n === undefined ? "–" : Number(n).toFixed(2));
@@ -105,6 +137,7 @@ function PartInput({ label, value, onValue, check, onInvalid, className = "", ..
 export default function Students({ email }) {
   // subjects = the four fixed ones: Math, English, Science, Arts.
   const [data, setData] = useState({ students: [], subjects: [] });
+  const [all, setAll] = useState(null); // the full, unfiltered list (for the summary tiles)
   const [search, setSearch] = useState("");
   const [parts, setParts] = useState(EMPTY_PARTS); // the new student being typed
   const setPart = (key, value) => setParts((p) => ({ ...p, [key]: value }));
@@ -114,7 +147,9 @@ export default function Students({ email }) {
 
   async function load(keyword = search) {
     try {
-      setData(await getOverview(keyword));
+      const result = await getOverview(keyword);
+      setData(result);
+      if (!keyword) setAll(result);
     } catch (err) {
       setMessage({ type: "error", text: err.message });
     }
@@ -149,18 +184,63 @@ export default function Students({ email }) {
   }
 
   const { students, subjects } = data;
+  const quote = quoteOfTheDay();
+
+  // Summary tiles use the full list, not the search results.
+  const everyone = all ?? data;
+  const totalStudents = everyone.students.length;
+  const fullyGraded = everyone.students.filter(
+    (st) => everyone.subjects.length > 0 && Object.keys(st.grades).length === everyone.subjects.length
+  ).length;
+  const pendingGrades = everyone.students.reduce(
+    (sum, st) => sum + (everyone.subjects.length - Object.keys(st.grades).length),
+    0
+  );
 
   return (
     <main className="container wide">
-      <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
-        <h1>Student Grade Tracker</h1>
-        <div className="row" style={{ alignItems: "center", flex: "none" }}>
-          <span className="empty" style={{ margin: 0 }}>{email}</span>
-          <button className="secondary" onClick={() => supabase.auth.signOut()}>
-            Sign out
-          </button>
+      <header className="hero">
+        <div className="hero-top">
+          <span className="brand">🎓 Grade Tracker</span>
+          <div className="user">
+            <span className="avatar" aria-hidden="true">{firstNameFromEmail(email)[0]}</span>
+            <span className="user-email">{email}</span>
+            <button className="secondary" onClick={() => supabase.auth.signOut()}>
+              Sign out
+            </button>
+          </div>
         </div>
-      </div>
+        <h1>
+          {greeting()}, {firstNameFromEmail(email)}! 👋
+        </h1>
+        <p className="date">
+          {new Date().toLocaleDateString(undefined, {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          })}
+        </p>
+        <blockquote className="quote">
+          “{quote.text}”
+          <cite>— {quote.by}</cite>
+        </blockquote>
+      </header>
+
+      <section className="stats" aria-label="Summary">
+        <div className="stat">
+          <span className="stat-num">{totalStudents}</span>
+          <span className="stat-label">Students</span>
+        </div>
+        <div className="stat">
+          <span className="stat-num">{fullyGraded}</span>
+          <span className="stat-label">Fully graded</span>
+        </div>
+        <div className="stat">
+          <span className="stat-num">{pendingGrades}</span>
+          <span className="stat-label">Grades to enter</span>
+        </div>
+      </section>
 
       {message && (
         <div className={`banner ${message.type}`} role="status">
