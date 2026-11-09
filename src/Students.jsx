@@ -17,10 +17,10 @@ const QUOTES = [
   { text: "Every student can learn, just not on the same day, or in the same way.", by: "George Evans" },
 ];
 
-// A new quote each day.
-function quoteOfTheDay() {
-  const day = Math.floor(Date.now() / 86400000);
-  return QUOTES[day % QUOTES.length];
+// A random quote, never the same one twice in a row.
+function randomQuote(previous) {
+  const others = QUOTES.filter((q) => q !== previous);
+  return others[Math.floor(Math.random() * others.length)];
 }
 
 function greeting() {
@@ -137,6 +137,8 @@ function PartInput({ label, value, onValue, check, onInvalid, className = "", ..
 export default function Students({ email }) {
   // subjects = the four fixed ones: Math, English, Science, Arts.
   const [data, setData] = useState({ students: [], subjects: [] });
+  // Picked once per page load (not on every keystroke); the shuffle button picks another.
+  const [quote, setQuote] = useState(() => randomQuote());
   const [loading, setLoading] = useState(true); // true until the first load finishes
   const [all, setAll] = useState(null); // the full, unfiltered list (for the summary tiles)
   const [search, setSearch] = useState("");
@@ -187,7 +189,6 @@ export default function Students({ email }) {
   }
 
   const { students, subjects } = data;
-  const quote = quoteOfTheDay();
   const firstLoad = loading && !all; // show the loading screens only the first time
 
   // Summary tiles use the full list, not the search results.
@@ -227,7 +228,18 @@ export default function Students({ email }) {
         </p>
         <blockquote className="quote">
           “{quote.text}”
-          <cite>— {quote.by}</cite>
+          <cite>
+            — {quote.by}
+            <button
+              type="button"
+              className="link shuffle"
+              onClick={() => setQuote((q) => randomQuote(q))}
+              aria-label="Show another quote"
+              title="Show another quote"
+            >
+              🔀
+            </button>
+          </cite>
         </blockquote>
       </header>
 
