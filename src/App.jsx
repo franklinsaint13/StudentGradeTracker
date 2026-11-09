@@ -18,7 +18,13 @@ export default function App() {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  if (session === undefined) return null;
+  if (session === undefined)
+    return (
+      <main className="splash" role="status" aria-live="polite">
+        <span className="spinner big" aria-hidden="true" />
+        <p>Loading…</p>
+      </main>
+    );
   if (session && recovering) return <ResetPassword onDone={() => setRecovering(false)} />;
   return session ? <Students email={session.user.email} /> : <Login />;
 }

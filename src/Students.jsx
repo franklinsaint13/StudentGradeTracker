@@ -137,6 +137,7 @@ function PartInput({ label, value, onValue, check, onInvalid, className = "", ..
 export default function Students({ email }) {
   // subjects = the four fixed ones: Math, English, Science, Arts.
   const [data, setData] = useState({ students: [], subjects: [] });
+  const [loading, setLoading] = useState(true); // true until the first load finishes
   const [all, setAll] = useState(null); // the full, unfiltered list (for the summary tiles)
   const [search, setSearch] = useState("");
   const [parts, setParts] = useState(EMPTY_PARTS); // the new student being typed
@@ -152,6 +153,8 @@ export default function Students({ email }) {
       if (!keyword) setAll(result);
     } catch (err) {
       setMessage({ type: "error", text: err.message });
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -185,6 +188,7 @@ export default function Students({ email }) {
 
   const { students, subjects } = data;
   const quote = quoteOfTheDay();
+  const firstLoad = loading && !all; // show the loading screens only the first time
 
   // Summary tiles use the full list, not the search results.
   const everyone = all ?? data;
@@ -229,15 +233,15 @@ export default function Students({ email }) {
 
       <section className="stats" aria-label="Summary">
         <div className="stat">
-          <span className="stat-num">{totalStudents}</span>
+          <span className={`stat-num${firstLoad ? " skeleton" : ""}`}>{firstLoad ? "00" : totalStudents}</span>
           <span className="stat-label">Students</span>
         </div>
         <div className="stat">
-          <span className="stat-num">{fullyGraded}</span>
+          <span className={`stat-num${firstLoad ? " skeleton" : ""}`}>{firstLoad ? "00" : fullyGraded}</span>
           <span className="stat-label">Fully graded</span>
         </div>
         <div className="stat">
-          <span className="stat-num">{pendingGrades}</span>
+          <span className={`stat-num${firstLoad ? " skeleton" : ""}`}>{firstLoad ? "00" : pendingGrades}</span>
           <span className="stat-label">Grades to enter</span>
         </div>
       </section>
@@ -307,14 +311,24 @@ export default function Students({ email }) {
           onChange={(e) => setSearch(e.target.value)}
         />
 
-        {subjects.length === 0 && (
+        {!firstLoad && subjects.length === 0 && (
           <div className="banner error">
             The subjects are missing from the database. Run the SQL update
             (migration_fixed_subjects.sql) in Supabase, then refresh.
           </div>
         )}
 
-        {students.length === 0 ? (
+        {firstLoad ? (
+          <div className="loading" role="status" aria-live="polite">
+            <span className="spinner" aria-hidden="true" />
+            <span>Loading your students…</span>
+            <div className="skeleton-rows" aria-hidden="true">
+              <div className="skeleton" />
+              <div className="skeleton" />
+              <div className="skeleton" />
+            </div>
+          </div>
+        ) : students.length === 0 ? (
           <p className="empty">No students found.</p>
         ) : (
           <div className="table-wrap">
