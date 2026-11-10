@@ -31,11 +31,11 @@ export default function ResetPassword({ onDone }) {
         <h2 style={{ marginTop: 0 }}>Choose a new password</h2>
         <div className="row" style={{ flexDirection: "column" }}>
           <PasswordInput
-            placeholder="New password (min 6 characters)"
+            placeholder="New password (min 8 characters)"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="new-password"
-            minLength={6}
+            minLength={8}
             required
           />
           <PasswordInput
@@ -43,7 +43,7 @@ export default function ResetPassword({ onDone }) {
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
             autoComplete="new-password"
-            minLength={6}
+            minLength={8}
             required
           />
           <button type="submit" disabled={busy}>

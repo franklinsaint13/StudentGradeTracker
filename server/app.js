@@ -72,6 +72,18 @@ async function requireUser(req, res, next) {
     return res.status(401).json({ error: "Session expired. Please sign in again." });
   }
 
+  // Only real, verified Gmail accounts may use the API (defence in depth: the
+  // database also refuses to create any other kind of account).
+  const email = String(data.user.email || "").toLowerCase();
+  if (!/@(gmail|googlemail)\.com$/.test(email)) {
+    return res.status(403).json({ error: "Only Gmail accounts can use this system." });
+  }
+  if (!data.user.email_confirmed_at) {
+    return res
+      .status(403)
+      .json({ error: "Please confirm your email first. Open the link we sent to your Gmail." });
+  }
+
   req.db = db;
   req.user = data.user;
   next();
