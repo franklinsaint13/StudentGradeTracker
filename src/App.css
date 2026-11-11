@@ -587,3 +587,244 @@ button.google {
   height: 1px;
   background: var(--border);
 }
+
+/* ======================================================================
+   Landing / sign-in page
+   ====================================================================== */
+
+.landing {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px 20px 40px;
+  color: #fff;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0 18px;
+}
+
+.topbar .brand {
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.topbar-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.topbar-actions .secondary {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.intro {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 40px;
+  align-items: center;
+  padding: 32px 0 56px;
+}
+
+.pill {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  font-size: 0.82rem;
+  margin-bottom: 14px;
+}
+
+.intro-text h1 {
+  margin: 0 0 16px;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  line-height: 1.1;
+  color: #fff;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
+}
+
+.intro-text h1 em {
+  font-style: normal;
+  color: #ffd9a0;
+}
+
+.lead {
+  margin: 0 0 22px;
+  font-size: 1.08rem;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.92);
+  max-width: 34rem;
+}
+
+.cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.cta.center {
+  justify-content: center;
+  margin-top: 28px;
+}
+
+.cta button {
+  padding: 12px 22px;
+  font-weight: 600;
+}
+
+.cta .secondary {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.ticks {
+  list-style: none;
+  padding: 0;
+  margin: 22px 0 0;
+  display: grid;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.ticks li::before {
+  content: "✓";
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+  border-radius: 50%;
+  background: #ffd9a0;
+  color: #2a1f4d;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.intro-form .card {
+  margin-bottom: 0;
+}
+
+.intro-form .banner {
+  margin-bottom: 12px;
+}
+
+/* ---------- sections ---------- */
+
+.section {
+  padding: 28px 0 36px;
+  scroll-margin-top: 16px;
+}
+
+.section-heading {
+  margin: 0 0 6px;
+  font-size: 1.7rem;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+.section-sub {
+  margin: 0 0 22px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.feature {
+  padding: 20px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(10, 10, 40, 0.25);
+}
+
+.feature-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.16);
+  font-size: 1.4rem;
+}
+
+.feature h3,
+.steps h3 {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+}
+
+.feature p,
+.steps p {
+  margin: 0;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.95rem;
+}
+
+.steps {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.steps li {
+  padding: 20px;
+  border-radius: 16px;
+  background: rgba(15, 12, 50, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.step-num {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 10px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffd9a0, #ff8fab);
+  color: #2a1f4d;
+  font-weight: 800;
+}
+
+.site-footer {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: center;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+@media (max-width: 900px) {
+  .intro {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .feature-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .feature-grid,
+  .steps {
+    grid-template-columns: 1fr;
+  }
+  .topbar .brand {
+    font-size: 1rem;
+  }
+}
