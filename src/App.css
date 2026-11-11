@@ -1043,3 +1043,90 @@ h3,
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------- grading system ---------- */
+
+.grade-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.grade-badge.excellent {
+  color: #b7791f;
+  background: rgba(246, 195, 67, 0.22);
+}
+.grade-badge.very-good {
+  color: #2f9e6b;
+  background: rgba(64, 192, 140, 0.2);
+}
+.grade-badge.satisfactory {
+  color: #4c6ef5;
+  background: rgba(116, 143, 252, 0.2);
+}
+.grade-badge.fair {
+  color: #d9730d;
+  background: rgba(255, 159, 67, 0.2);
+}
+.grade-badge.failed {
+  color: #e03131;
+  background: rgba(250, 82, 82, 0.2);
+}
+
+@media (prefers-color-scheme: dark) {
+  .grade-badge.excellent { color: #ffd479; }
+  .grade-badge.very-good { color: #63e6be; }
+  .grade-badge.satisfactory { color: #91a7ff; }
+  .grade-badge.fair { color: #ffb066; }
+  .grade-badge.failed { color: #ff8787; }
+}
+
+.grading {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.grading h3 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+  color: var(--primary);
+}
+
+.grading-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.grade-dot.excellent { color: #e0a800; }
+.grade-dot.very-good { color: #2f9e6b; }
+.grade-dot.satisfactory { color: #4c6ef5; }
+.grade-dot.fair { color: #d9730d; }
+.grade-dot.failed { color: #e03131; }
+
+.grading-details {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.grading-details summary {
+  cursor: pointer;
+  color: var(--primary);
+}
+
+.grading-table {
+  margin-top: 8px;
+  max-width: 460px;
+}

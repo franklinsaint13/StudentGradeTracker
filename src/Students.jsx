@@ -15,7 +15,6 @@ const QUOTES = [
   { text: "Teaching is the one profession that creates all other professions.", by: "Unknown" },
   { text: "A good teacher can inspire hope, ignite the imagination, and instill a love of learning.", by: "Brad Henry" },
   { text: "Every student can learn, just not on the same day, or in the same way.", by: "George Evans" },
-  { text: "Bagsak ka? Wala ka kasing bitaw", by: "Christian Joseph Palomares" },
 ];
 
 // A random quote, never the same one twice in a row.
@@ -35,6 +34,64 @@ function greeting() {
 function firstNameFromEmail(email = "") {
   const name = email.split("@")[0].replace(/[^a-zA-Z]+/g, " ").trim().split(" ")[0];
   return name ? name[0].toUpperCase() + name.slice(1).toLowerCase() : "there";
+}
+
+// "Very Good" -> "very-good" (used for the badge colours)
+const slug = (label) => label.toLowerCase().replace(/\s+/g, "-");
+
+// The grading system shown under the table. The scale comes from the API,
+// so the rules live in one place (server/stats.js).
+function GradingSystem({ scale }) {
+  if (!scale?.length) return null;
+
+  // Group neighbouring rows with the same description: 1.25 - 1.75 (Very Good)
+  const groups = [];
+  for (const row of scale) {
+    const last = groups[groups.length - 1];
+    if (last && last.label === row.label) last.points.push(row.point);
+    else groups.push({ label: row.label, points: [row.point] });
+  }
+  const range = (g) =>
+    g.points.length === 1 ? g.points[0] : `${g.points[0]} - ${g.points[g.points.length - 1]}`;
+
+  return (
+    <section className="grading" aria-label="Grading system">
+      <h3>Grading System:</h3>
+      <ul className="grading-list">
+        {groups.map((g) => (
+          <li key={g.label}>
+            <span className={`grade-dot ${slug(g.label)}`} aria-hidden="true">☆</span>{" "}
+            {range(g)} ({g.label})
+          </li>
+        ))}
+      </ul>
+      <details className="grading-details">
+        <summary>See score conversion</summary>
+        <table className="grading-table">
+          <thead>
+            <tr>
+              <th>Average (%)</th>
+              <th>Grade point</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            {scale.map((r) => (
+              <tr key={r.point}>
+                <td>
+                  {r.min === 0
+                    ? `${r.max.toFixed(2)} and below`
+                    : `${r.min.toFixed(2)} – ${r.max.toFixed(2)}`}
+                </td>
+                <td>{r.point}</td>
+                <td>{r.label}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </details>
+    </section>
+  );
 }
 
 const EMPTY_PARTS = { last_name: "", first_name: "", middle_initial: "", suffix: "" };
@@ -373,6 +430,11 @@ export default function Students({ email }) {
                       ))}
                       <td>
                         <strong>{show(st.average)}</strong>
+                        {st.equivalent && (
+                          <span className={`grade-badge ${slug(st.equivalent.label)}`}>
+                            {st.equivalent.point} · {st.equivalent.label}
+                          </span>
+                        )}
                         {graded > 0 && graded < subjects.length && (
                           <span className="hint">
                             {graded}/{subjects.length} graded
@@ -391,6 +453,8 @@ export default function Students({ email }) {
             </table>
           </div>
         )}
+
+        {!firstLoad && <GradingSystem scale={data.scale} />}
 
         <p className="empty">
           A student's average is worked out automatically from the grades entered for
