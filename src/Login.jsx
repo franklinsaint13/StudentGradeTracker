@@ -67,6 +67,7 @@ export default function Login() {
   const [mode, setMode] = useState("signin"); // "signin" | "signup" | "forgot"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState(""); // "retype password" box (sign up only)
   const [message, setMessage] = useState(null); // { type: "error" | "ok", text }
   const [busy, setBusy] = useState(false);
   const [open, setOpen] = useState(false); // is the sign-in pop-up showing?
@@ -75,6 +76,7 @@ export default function Login() {
   function openAuth(nextMode) {
     setMode(nextMode);
     setMessage(null);
+    setConfirm("");
     setOpen(true);
   }
 
@@ -112,6 +114,11 @@ export default function Login() {
     if (mode !== "signin") {
       const problem = gmailProblem(address);
       if (problem) return setMessage({ type: "error", text: problem });
+    }
+
+    // Sign up: the password has to be typed twice, exactly the same.
+    if (mode === "signup" && password !== confirm) {
+      return setMessage({ type: "error", text: "The two passwords don't match. Please retype it." });
     }
 
     setBusy(true);
@@ -354,6 +361,27 @@ export default function Login() {
                 />
               )}
 
+              {mode === "signup" && (
+                <>
+                  <PasswordInput
+                    placeholder="Retype password"
+                    value={confirm}
+                    onChange={(e) => setConfirm(e.target.value)}
+                    autoComplete="new-password"
+                    minLength={8}
+                    required
+                  />
+                  {confirm && (
+                    <p
+                      className={`match-hint ${password === confirm ? "ok" : "bad"}`}
+                      role="status"
+                    >
+                      {password === confirm ? "✓ Passwords match" : "Passwords don't match yet"}
+                    </p>
+                  )}
+                </>
+              )}
+
               <button type="submit" disabled={busy}>
                 {busy
                   ? "Please wait…"
@@ -392,6 +420,7 @@ export default function Login() {
                 onClick={() => {
                   setMode(mode === "signin" ? "signup" : "signin");
                   setMessage(null);
+                  setConfirm("");
                 }}
               >
                 {mode === "signin" ? "Sign up" : "Sign in"}

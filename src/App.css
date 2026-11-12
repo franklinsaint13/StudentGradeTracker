@@ -1207,3 +1207,21 @@ h3,
     padding: 22px 18px 26px;
   }
 }
+
+/* ---------- retype-password hint ---------- */
+
+.match-hint {
+  margin: -4px 0 0;
+  font-size: 0.82rem;
+}
+.match-hint.ok {
+  color: #2f9e6b;
+}
+.match-hint.bad {
+  color: var(--danger);
+}
+@media (prefers-color-scheme: dark) {
+  .match-hint.ok {
+    color: #63e6be;
+  }
+}
