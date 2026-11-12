@@ -4,6 +4,7 @@ import { navigate } from "./router.js";
 import Login from "./Login.jsx";
 import ResetPassword from "./ResetPassword.jsx";
 import Students from "./Students.jsx";
+import Legal from "./Legal.jsx";
 
 // Moves to another page as soon as it is shown.
 function Redirect({ to }) {
@@ -40,6 +41,9 @@ export default function App() {
       sub.subscription.unsubscribe();
     };
   }, []);
+
+  // Public pages that anyone can read, signed in or not.
+  if (path === "/privacy" || path === "/terms") return <Legal page={path.slice(1)} />;
 
   if (session === undefined)
     return (

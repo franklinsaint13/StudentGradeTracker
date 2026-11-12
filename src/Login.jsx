@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "./supabase.js";
 import PasswordInput from "./PasswordInput.jsx";
 import { gmailProblem } from "./emailRules.js";
+import { navigate } from "./router.js";
 
 const GMAIL_ONLY =
   "That account can't be used. Only real Gmail accounts that haven't been used before are allowed.";
@@ -287,7 +288,10 @@ export default function Login() {
       </section>
 
       <footer className="site-footer">
-        Student Grade Tracker · Built with React, Node.js and Supabase
+        Student Grade Tracker · Built with React, Node.js and Supabase ·{" "}
+        <a href="/privacy" onClick={(e) => { e.preventDefault(); navigate("/privacy"); }}>Privacy</a>
+        {" · "}
+        <a href="/terms" onClick={(e) => { e.preventDefault(); navigate("/terms"); }}>Terms</a>
       </footer>
 
       {/* ---------- sign-in pop-up ---------- */}

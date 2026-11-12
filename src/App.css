@@ -1130,3 +1130,80 @@ h3,
   margin-top: 8px;
   max-width: 460px;
 }
+
+/* ---------- privacy policy and terms pages ---------- */
+
+.site-footer a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.legal {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 28px 16px 56px;
+}
+
+.legal-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  color: #fff;
+}
+
+.legal-nav a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.legal-links {
+  display: flex;
+  gap: 18px;
+}
+
+.legal-card {
+  padding: 28px 30px 32px;
+  border-radius: 20px;
+  color: var(--text);
+  background: var(--glass);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 16px 44px rgba(10, 10, 40, 0.35);
+  line-height: 1.65;
+}
+
+.legal-card h1 {
+  margin: 0 0 4px;
+}
+
+.legal-card h2 {
+  margin: 26px 0 8px;
+  font-size: 1.2rem;
+}
+
+.legal-card ul {
+  padding-left: 20px;
+}
+
+.legal-card li {
+  margin-bottom: 6px;
+}
+
+.legal-card a {
+  color: var(--primary);
+}
+
+.legal-updated {
+  margin-top: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 500px) {
+  .legal-card {
+    padding: 22px 18px 26px;
+  }
+}
