@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "./supabase.js";
 import { navigate } from "./router.js";
+import { rejectUnregistered } from "./authIntent.js";
 import Login from "./Login.jsx";
 import ResetPassword from "./ResetPassword.jsx";
 import Students from "./Students.jsx";
@@ -29,14 +30,28 @@ export default function App() {
     const onNavigate = () => setPath(window.location.pathname);
     window.addEventListener("popstate", onNavigate);
 
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    let active = true;
+
+    // Every new session is checked first: a Google account that was only meant to
+    // LOG IN, but was never signed up, is refused and removed.
+    const accept = async (newSession) => {
+      if (newSession && (await rejectUnregistered(newSession))) {
+        if (active) setSession(null);
+        return;
+      }
+      if (active) setSession(newSession);
+    };
+
+    supabase.auth.getSession().then(({ data }) => accept(data.session));
     const { data: sub } = supabase.auth.onAuthStateChange((event, newSession) => {
       if (event === "PASSWORD_RECOVERY") setRecovering(true);
       if (event === "SIGNED_OUT") setRecovering(false);
-      setSession(newSession);
+      // Wait a moment: other Supabase calls must not run inside this callback.
+      setTimeout(() => accept(newSession), 0);
     });
 
     return () => {
+      active = false;
       window.removeEventListener("popstate", onNavigate);
       sub.subscription.unsubscribe();
     };

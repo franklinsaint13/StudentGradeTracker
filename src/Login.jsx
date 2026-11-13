@@ -3,6 +3,7 @@ import { supabase } from "./supabase.js";
 import PasswordInput from "./PasswordInput.jsx";
 import { gmailProblem } from "./emailRules.js";
 import { navigate } from "./router.js";
+import { rememberIntent, takeLoginError } from "./authIntent.js";
 
 const GMAIL_ONLY =
   "That account can't be used. Only real Gmail accounts that haven't been used before are allowed.";
@@ -93,6 +94,16 @@ export default function Login() {
     };
   }, [open]);
 
+  // Sent back here because that Google account had never signed up? Say so.
+  useEffect(() => {
+    const text = takeLoginError();
+    if (text) {
+      setMode("signup");
+      setMessage({ type: "error", text });
+      setOpen(true);
+    }
+  }, []);
+
   // If Google (or an email link) sent us back with an error in the address, show it.
   useEffect(() => {
     const found = [window.location.search, window.location.hash.replace(/^#/, "")]
@@ -163,6 +174,7 @@ export default function Login() {
 
   async function handleGoogle() {
     setMessage(null);
+    rememberIntent(mode); // "signin" or "signup": checked again when Google sends them back
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -331,7 +343,7 @@ export default function Login() {
             {mode !== "forgot" && (
               <>
                 <button type="button" className="secondary google" onClick={handleGoogle}>
-                  Continue with Google
+                  {mode === "signup" ? "Sign up with Google" : "Log in with Google"}
                 </button>
                 <div className="divider">
                   <span>or use your Gmail and a password</span>
