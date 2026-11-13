@@ -35,9 +35,20 @@ export default function App() {
     // Every new session is checked first: a Google account that was only meant to
     // LOG IN, but was never signed up, is refused and removed.
     const accept = async (newSession) => {
-      if (newSession && (await rejectUnregistered(newSession))) {
-        if (active) setSession(null);
-        return;
+      if (newSession) {
+        // A Google account that only tried to log in, but never signed up.
+        if (await rejectUnregistered(newSession)) {
+          if (active) setSession(null);
+          return;
+        }
+        // Is the account still there? Deleting a user in Supabase does not sign their
+        // browser out, so ask the server. A deleted account must not stay signed in.
+        const { error } = await supabase.auth.getUser();
+        if (error && [401, 403, 404].includes(error.status)) {
+          await supabase.auth.signOut();
+          if (active) setSession(null);
+          return;
+        }
       }
       if (active) setSession(newSession);
     };
